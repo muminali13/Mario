@@ -4,6 +4,7 @@ import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 
+import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11C.GL_COLOR_BUFFER_BIT;
@@ -41,6 +42,11 @@ public class Window {
 
         init();
         loop();
+
+        glfwFreeCallbacks(glfwWindow);
+        glfwDestroyWindow(glfwWindow);
+        glfwTerminate();
+        glfwSetErrorCallback(null).free();
     }
 
     private void init() {
@@ -60,6 +66,12 @@ public class Window {
         if (glfwWindow == NULL) {
             throw new IllegalStateException("Failed to create the GLFW window.");
         }
+
+        glfwSetCursorPosCallback(glfwWindow, MouseListener::mousePosCallback);
+        glfwSetMouseButtonCallback(glfwWindow, MouseListener::mouseButtonCallback);
+        glfwSetScrollCallback(glfwWindow, MouseListener::mouseScrollCallback);
+
+        glfwSetKeyCallback(glfwWindow, KeyListener::keyCallback);
 
         glfwMakeContextCurrent(glfwWindow);
         glfwSwapInterval(1);
