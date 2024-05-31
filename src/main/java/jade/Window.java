@@ -1,11 +1,13 @@
 package jade;
 
+import util.Time;
 import org.lwjgl.Version;
 import org.lwjgl.glfw.GLFWErrorCallback;
 import org.lwjgl.opengl.GL;
 
 import static org.lwjgl.glfw.Callbacks.glfwFreeCallbacks;
 import static org.lwjgl.glfw.GLFW.*;
+import static org.lwjgl.opengl.GL11.GL_TRUE;
 import static org.lwjgl.opengl.GL11.glClear;
 import static org.lwjgl.opengl.GL11C.GL_COLOR_BUFFER_BIT;
 import static org.lwjgl.opengl.GL11C.glClearColor;
@@ -19,6 +21,7 @@ public class Window {
 
     private long glfwWindow;
 
+    private static Scene currnentScene;
 
     private static Window window = null;
 
@@ -27,6 +30,21 @@ public class Window {
         this.height = 1820;
 
         this.title = "Mario";
+    }
+
+    public static void changeScene(int newScene) {
+        switch (newScene) {
+            case 0:
+                currnentScene = new LevelEditorScene();
+                currnentScene.init();
+                break;
+            case 1:
+                currnentScene = new LevelScene();
+                break;
+            default:
+                assert false : "Unknown scene \'" + newScene + "\'";
+                break;
+        }
     }
 
     public static Window get() {
@@ -62,6 +80,11 @@ public class Window {
         glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
         glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
         glfwWindow = glfwCreateWindow(width, height, title, NULL, NULL);
         if (glfwWindow == NULL) {
             throw new IllegalStateException("Failed to create the GLFW window.");
@@ -78,18 +101,33 @@ public class Window {
         glfwShowWindow(glfwWindow);
 
         GL.createCapabilities();
+
+        Window.changeScene(0);
     }
 
     private void loop() {
+
+        float beginTime = Time.getTime();
+        float endTime;
+        float dt = 0;
+
         while (!glfwWindowShouldClose(glfwWindow)) {
 
             glfwPollEvents();
 
-            glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+            glClearColor(1.0f, 0.5f, 0.5f, 1.0f);
 
             glClear(GL_COLOR_BUFFER_BIT);
 
+            currnentScene.update(dt);
+
             glfwSwapBuffers(glfwWindow);
+
+            endTime = Time.getTime();
+            dt = endTime - beginTime;
+            beginTime = endTime;
+
+//            System.out.println("FPS: " + 1.0f/dt);
         }
     }
 }
